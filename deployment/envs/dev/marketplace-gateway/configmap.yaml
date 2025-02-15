@@ -1,0 +1,78 @@
+---
+# Source: marketplace-gateway/templates/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: marketplace-gateway
+  namespace: applications
+  labels:
+    app.kubernetes.io/name: marketplace-gateway
+    app.kubernetes.io/component: marketplace-gateway
+    app.kubernetes.io/part-of: applications
+data:
+  local_group_id: "1036"
+  local_user_id: "1036"
+  spring_profile_active: "dev"
+  tz: "America/New_York"
+  java_opts: >-
+   -Djava.net.preferIPv4Stack=true
+   -Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector
+   -XX:+DisableExplicitGC
+   -XX:+HeapDumpOnOutOfMemoryError
+   -XX:HeapDumpPath=/var/log/marketplace-gateway
+   -XX:InitiatingHeapOccupancyPercent=60
+   -Xlog:gc+age=trace,gc+promotion=debug,gc*:file=/var/log/marketplace-gateway/garbage_collect.log:time,uptime:filecount=10,filesize=10M
+   -XX:MinRAMPercentage=50
+   -XX:MaxRAMPercentage=65
+   -XX:MaxGCPauseMillis=200
+   -XX:+PrintCommandLineFlags
+   -XX:+UseG1GC
+
+  application.properties: |
+    APP_PORT=9000
+    MP_GATEWAY_LOG_LEVEL=INFO
+    LOG4J_CONF=/etc/marketplace-gateway/marketplace-gateway-log4j2.xml
+
+  marketplace-gateway-log4j2.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Configuration status="warn" monitorInterval="60">
+
+      <Appenders>
+        <Console name="Console-Appender"
+                 target="SYSTEM_OUT">
+          <PatternLayout
+            pattern="%d{ISO8601_OFFSET_DATE_TIME_HH} %-5p (%X{processId}) [%t] %c{1.} - %m%n" />
+        </Console>
+      </Appenders>
+
+      <Loggers>
+        <Logger name="com.interactions" level="info" additivity="false">
+            <AppenderRef ref="Console-Appender"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="Console-Appender"/>
+        </Root>
+      </Loggers>     
+    </Configuration>
+
+  marketplace-gateway-debug-log4j2.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Configuration status="warn" monitorInterval="60">
+
+      <Appenders>
+        <Console name="Console-Appender"
+                 target="SYSTEM_OUT">
+          <PatternLayout
+            pattern="%d{ISO8601_OFFSET_DATE_TIME_HH} %-5p (%X{processId}) [%t] %c{1.} - %m%n" />
+        </Console>
+      </Appenders>
+
+      <Loggers>
+        <Logger name="com.interactions" level="debug" additivity="false">
+            <AppenderRef ref="Console-Appender"/>
+        </Logger>
+        <Root level="debug">
+            <AppenderRef ref="Console-Appender"/>
+        </Root>
+      </Loggers>     
+    </Configuration>

@@ -8,5 +8,4 @@ resources:
   - marketplace-gateway.yaml
 
 generatorOptions:
-  # mess around with this later, after testing, flux/helm already kinda hash, so likely we'll want kustomize to do so too
   disableNameSuffixHash: true

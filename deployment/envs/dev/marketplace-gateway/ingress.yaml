@@ -1,0 +1,34 @@
+---
+# Source: marketplace-gateway/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "marketplace-gateway"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  name: marketplace-gateway
+  namespace: applications
+spec:
+  rules:
+  - host: marketplace-gateway.loanswithem.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: marketplace-gateway
+            port:
+              number: 9000
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - marketplace-gateway.loanswithem.com
+    secretName: loanswithem-tls

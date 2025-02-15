@@ -1,0 +1,111 @@
+---
+# Source: marketplace-gateway/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketplace-gateway
+  namespace: applications
+  labels:
+    app.kubernetes.io/name: marketplace-gateway
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    app.kubernetes.io/component: marketplace-gateway
+    app.kubernetes.io/part-of: applications
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: marketplace-gateway
+  template:
+    metadata:
+      annotations:
+        checksum/config: a286d31823f83272210d9ba16bc730424a4f2865fd9202e1f80df8cdf44ffad2
+      name: marketplace-gateway
+      namespace: applications
+      labels:
+        app.kubernetes.io/name: marketplace-gateway
+        app.kubernetes.io/version: 1.0.0-SNAPSHOT
+        app.kubernetes.io/component: marketplace-gateway
+        app.kubernetes.io/part-of: applications
+    spec:
+      containers:
+        - name: marketplace-gateway
+          image: ghcr.io/juank2080/marketplace-gateway:1.0.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
+          env:
+          - name: LOCAL_GROUP_ID
+            valueFrom:
+              configMapKeyRef:
+                name: marketplace-gateway
+                key: local_group_id
+          - name: LOCAL_USER_ID
+            valueFrom:
+              configMapKeyRef:
+                name: marketplace-gateway
+                key: local_user_id
+          - name: SPRING_PROFILES_ACTIVE
+            valueFrom:
+              configMapKeyRef:
+                name: marketplace-gateway
+                key: spring_profile_active
+          - name: TZ
+            valueFrom:
+              configMapKeyRef:
+                name: marketplace-gateway
+                key: tz
+          - name: JAVA_OPTS
+            valueFrom:
+              configMapKeyRef:
+                name: marketplace-gateway
+                key: java_opts
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              add:
+              - SYS_PTRACE
+          resources:
+            requests:
+              memory: 768Mi
+              cpu: 500m
+            limits:
+              memory: 768Mi
+              cpu: 500m
+          volumeMounts:
+            - name: marketplace-gateway-config
+              mountPath: /etc/marketplace/marketplace-gateway.properties
+              subPath: application.properties
+            - name: marketplace-gateway-config
+              mountPath: /etc/marketplace/marketplace-gateway-log4j2.xml
+              subPath: marketplace-gateway-log4j2.xml
+            - name: marketplace-gateway-config
+              mountPath: /etc/marketplace/marketplace-gateway-debug-log4j2.xml
+              subPath: marketplace-gateway-debug-log4j2.xml
+            - name: marketplace-gateway-log
+              mountPath: /var/log/marketplace-gateway
+      imagePullSecrets:
+        - name: regcred
+      serviceAccountName: marketplace-gateway
+      volumes:
+        # Volume for heap dump as we use it in the JAVA_OPTS
+        - name: marketplace-gateway-log
+          emptyDir: {}
+        - name: marketplace-gateway-config
+          projected:
+            sources:
+              - configMap:
+                  name: marketplace-gateway
+                  items:
+                    - key: marketplace-gateway-log4j2.xml
+                      path: marketplace-gateway-log4j2.xml
+                    - key: marketplace-gateway-debug-log4j2.xml
+                      path: marketplace-gateway-debug-log4j2.xml
+                    - key: application.properties
+                      path: application.properties
