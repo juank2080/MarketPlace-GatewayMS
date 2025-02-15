@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: marketplace-gateway
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: marketplace-gateway
+  source:
+    repoURL: https://github.com/juank2080/MarketPlace-GatewayMS.git
+    path: deployment/envs/dev/marketplace-gateway
+    targetRevision: integration
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: applications
+  syncPolicy:
+    automated:
+      prune: true

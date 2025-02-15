@@ -1,0 +1,11 @@
+spring_profiles_active: 'dev'
+
+service_hostname:
+  - "marketplace-gateway.loanswithem.com"
+
+environment: dev
+
+enable_antiaffinity: false
+replicaCount: 2
+
+log4JavaConf: /etc/marketplace-gateway/marketplace-gateway-debug-log4j2.xml

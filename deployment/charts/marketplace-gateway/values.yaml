@@ -1,0 +1,25 @@
+nameOverride: marketplace-gateway
+fullnameOverride: marketplace-gateway
+dockerRepository: ghcr.io
+images:
+  marketplacegateway:
+    name: juank2080/marketplace-gateway
+    tag: 1.0.0-SNAPSHOT
+namespace: applications
+spring_profiles_active: 'dev'
+requests:
+  memory: '768Mi'
+  cpu: '500m'
+limits:
+  memory: '768Mi'
+  cpu: '500m'
+
+enable_antiaffinity: false
+replicaCount: 1
+jvm_max_ram_percentage: 65
+servicePort: 9000
+service_hostname:
+  - "marketplace-gateway.loanswithem.com"
+
+rootlogLevel: INFO
+log4JavaConf: /etc/marketplace-gateway/marketplace-gateway-log4j2.xml

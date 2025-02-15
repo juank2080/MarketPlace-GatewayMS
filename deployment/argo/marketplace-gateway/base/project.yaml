@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: marketplace-gateway
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  # Project description
+  description: 'Short url generator and request redirected Service'
+
+  # Allow manifests to deploy from any Git repos
+  sourceRepos:
+  - 'https://github.com/juank2080/MarketPlace-GatewayMS.git'
+
+  # Only permit applications to deploy to:
+  # * argocd for project definitions
+  # * cattle-dashboards for configmap holding dashboard for Grafana
+  # * ingress-nginx for service to reach ingress object for apps
+  # * platform namespace for the component
+  destinations:
+  - namespace: argocd
+    server: https://kubernetes.default.svc
+  - namespace: cattle-dashboards
+    server: https://kubernetes.default.svc
+  - namespace: ingress-nginx
+    server: https://kubernetes.default.svc
+  - namespace: applications
+    server: https://kubernetes.default.svc
+
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+
+  namespaceResourceBlacklist:
+  - group: ''
+    kind: ResourceQuota
+  - group: ''
+    kind: LimitRange
+  - group: ''
+    kind: NetworkPolicy
+
+  orphanedResources:
+    warn: false

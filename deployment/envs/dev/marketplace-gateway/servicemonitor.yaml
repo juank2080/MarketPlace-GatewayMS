@@ -1,0 +1,34 @@
+---
+# Source: marketplace-gateway/templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: marketplace-gateway
+  namespace: applications
+  labels:
+    app.kubernetes.io/name: marketplace-gateway
+    app.kubernetes.io/component: marketplace-gateway
+    app.kubernetes.io/part-of: applications
+spec:
+  endpoints:
+  - port: http
+    basicAuth:
+      password:
+        name: admin
+        key: password
+      username:
+        name: admin
+        key: user
+    path: /actuator/prometheus
+    interval: 30s
+    relabelings:
+    - action: replace
+      sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: instance
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: marketplace-gateway
+  namespaceSelector:
+    matchNames:
+    matchNames:
+    - applications

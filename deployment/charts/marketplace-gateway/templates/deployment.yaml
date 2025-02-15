@@ -1,0 +1,123 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "marketplace-gateway.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ template "marketplace-gateway.fullname" . }}
+    app.kubernetes.io/version: {{ .Values.images.marketplacegateway.tag }}
+    app.kubernetes.io/component: marketplace-gateway
+    app.kubernetes.io/part-of: applications
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "marketplace-gateway.fullname" . }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      name: {{ template "marketplace-gateway.fullname" . }}
+      namespace: {{ .Values.namespace }}
+      labels:
+        app.kubernetes.io/name: {{ template "marketplace-gateway.fullname" . }}
+        app.kubernetes.io/version: {{ .Values.images.marketplacegateway.tag }}
+        app.kubernetes.io/component: marketplace-gateway
+        app.kubernetes.io/part-of: applications
+    spec:
+{{- if .Values.enable_antiaffinity }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - {{ template "marketplace-gateway.fullname" (merge . $) }}
+              namespaces: ["{{ .Values.namespace }}"]
+              topologyKey: "kubernetes.io/hostname"
+{{- end }}
+      containers:
+        - name: {{ template "marketplace-gateway.fullname" . }}
+          image: {{ .Values.dockerRepository }}/{{ .Values.images.marketplacegateway.name }}:{{ .Values.images.marketplacegateway.tag }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.servicePort }}
+          env:
+          - name: LOCAL_GROUP_ID
+            valueFrom:
+              configMapKeyRef:
+                name: {{ template "marketplace-gateway.fullname" . }}
+                key: local_group_id
+          - name: LOCAL_USER_ID
+            valueFrom:
+              configMapKeyRef:
+                name: {{ template "marketplace-gateway.fullname" . }}
+                key: local_user_id
+          - name: SPRING_PROFILES_ACTIVE
+            valueFrom:
+              configMapKeyRef:
+                name: {{ template "marketplace-gateway.fullname" . }}
+                key: spring_profile_active
+          - name: TZ
+            valueFrom:
+              configMapKeyRef:
+                name: {{ template "marketplace-gateway.fullname" . }}
+                key: tz
+          - name: JAVA_OPTS
+            valueFrom:
+              configMapKeyRef:
+                name: {{ template "marketplace-gateway.fullname" . }}
+                key: java_opts
+          - name: MY_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              add:
+              - SYS_PTRACE
+          resources:
+            requests:
+              memory: {{ .Values.requests.memory }}
+              cpu: {{ .Values.requests.cpu }}
+            limits:
+              memory: {{ .Values.limits.memory }}
+              cpu: {{ .Values.limits.cpu }}
+          volumeMounts:
+            - name: {{ template "marketplace-gateway.fullname" . }}-config
+              mountPath: /etc/marketplace/marketplace-gateway.properties
+              subPath: application.properties
+            - name: {{ template "marketplace-gateway.fullname" . }}-config
+              mountPath: /etc/marketplace/marketplace-gateway-log4j2.xml
+              subPath: marketplace-gateway-log4j2.xml
+            - name: {{ template "marketplace-gateway.fullname" . }}-config
+              mountPath: /etc/marketplace/marketplace-gateway-debug-log4j2.xml
+              subPath: marketplace-gateway-debug-log4j2.xml
+            - name: {{ template "marketplace-gateway.fullname" . }}-log
+              mountPath: /var/log/marketplace-gateway
+      imagePullSecrets:
+        - name: regcred
+      serviceAccountName: {{ template "marketplace-gateway.fullname" . }}
+      volumes:
+        # Volume for heap dump as we use it in the JAVA_OPTS
+        - name: {{ template "marketplace-gateway.fullname" . }}-log
+          emptyDir: {}
+        - name: {{ template "marketplace-gateway.fullname" . }}-config
+          projected:
+            sources:
+              - configMap:
+                  name: {{ template "marketplace-gateway.fullname" . }}
+                  items:
+                    - key: marketplace-gateway-log4j2.xml
+                      path: marketplace-gateway-log4j2.xml
+                    - key: marketplace-gateway-debug-log4j2.xml
+                      path: marketplace-gateway-debug-log4j2.xml
+                    - key: application.properties
+                      path: application.properties
