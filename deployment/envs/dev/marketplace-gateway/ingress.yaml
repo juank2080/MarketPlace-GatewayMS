@@ -17,6 +17,7 @@ metadata:
   name: marketplace-gateway
   namespace: applications
 spec:
+  ingressClassName: nginx
   rules:
   - host: marketplace-gateway.loanswithem.com
     http:
