@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: dev
+
+server:
+  port: ${APP_PORT:9001}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
