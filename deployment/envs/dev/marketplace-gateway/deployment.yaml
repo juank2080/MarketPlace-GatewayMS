@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: marketplace-gateway
-          image: ghcr.io/juank2080/marketplace-gateway:1.0.0
+          image: ghcr.io/juank2080/marketplace-gateway:1.0.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000

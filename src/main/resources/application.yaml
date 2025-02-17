@@ -3,7 +3,7 @@ spring:
     active: dev
 
 server:
-  port: ${APP_PORT:9001}
+  port: ${APP_PORT:9000}
 
 management:
   endpoints:

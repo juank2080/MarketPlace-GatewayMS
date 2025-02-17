@@ -87,6 +87,9 @@
 						<configuration>
 							<image>
 								<name>${docker.publishRegistry.url}/juank2080/${project.artifactId}:${docker.image.tag}</name>
+								<env>
+									<BP_JVM_TYPE>JRE</BP_JVM_TYPE>
+								</env>
 							</image>
 							<docker>
 								<publishRegistry>
