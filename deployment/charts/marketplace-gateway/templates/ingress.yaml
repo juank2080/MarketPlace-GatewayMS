@@ -16,6 +16,7 @@ metadata:
   name: {{ template "marketplace-gateway.fullname" . }}
   namespace: {{ .Values.namespace }}
 spec:
+  ingressClassName: nginx
   rules:
   {{- range .Values.service_hostname }}
   - host: {{ . }}
